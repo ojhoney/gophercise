@@ -55,7 +55,7 @@ func (c Card) String() string {
 	return fmt.Sprintf("%s of %ss", c.Rank.String(), c.Suit.String())
 }
 
-func NewDecks(opts ...Opts) []Card {
+func NewDeck(opts ...Opts) []Card {
 	var cards []Card
 	for _, suit := range suits {
 		for rank := minRank; rank <= maxRank; rank++ {
@@ -69,7 +69,7 @@ func NewDecks(opts ...Opts) []Card {
 	return cards
 }
 
-type Opts func([]Card) []Card
+type Opts func(cards []Card) []Card
 
 func absRank(c Card) int {
 	return int(c.Suit)*int(maxRank) + int(c.Rank)
@@ -95,10 +95,40 @@ func Sort(less func(cards []Card) func(i, j int) bool) func([]Card) []Card {
 
 func Shuffle(cards []Card) []Card {
 	r := rand.New(rand.NewSource(0))
-
 	ret := make([]Card, len(cards))
-	for i, j := range rand.Perm(len(cards)) {
+	for i, j := range r.Perm(len(cards)) {
 		ret[i] = cards[j]
 	}
+	return ret
+}
 
+func AddJoker(num_of_joker int) Opts {
+	return func(cards []Card) []Card {
+		for i := 0; i < num_of_joker; i++ {
+			cards = append(cards, Card{Suit: Joker})
+		}
+		return cards
+	}
+}
+
+func Filter(f func(card Card) bool) Opts {
+	return func(cards []Card) []Card {
+		var ret []Card
+		for _, c := range cards {
+			if !f(c) {
+				ret = append(ret, c)
+			}
+		}
+		return ret
+	}
+}
+
+func AddDeck(num_of_deck int) Opts {
+	return func(cards []Card) []Card {
+		var ret []Card
+		for i := 0; i < num_of_deck; i++ {
+			ret = append(ret, cards...)
+		}
+		return ret
+	}
 }
